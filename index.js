@@ -1,6 +1,7 @@
 const { Command } = require('commander');
-const fs = require('fs');
 const program = new Command();
+const { read, parseRowDataToNumbers, transposeMatrix, sortRow, computeAbsoluteDifferences, sum, countOccurrences } = require('./utilsD1');
+const { isStrictlyMonotonic, checkIfAnyStrictlyMonotonic, produceArraysWithoutCurrentItem } = require('./utilsD2');
 
 // Run the program with the following command:
 // node index.js -d 1
@@ -19,14 +20,16 @@ if (options.day) console.log(`Starting day ${options.day}!`);
 if (options.day === '1') day1();
 if (options.day === '2') day2();
 
+if (options.day === '3') day3();
+
 function day1() {
     try {
-        const data = fs.readFileSync('d1.in', 'utf8');
+        const data = read('d1.in');
         const rowPairs = parseRowDataToNumbers(data);
         const transposed = transposeMatrix(rowPairs);
         const sorted = transposed.map(sortRow);
         const differences = computeAbsoluteDifferences(sorted);
-        console.log("day1 pt1 " + sumAbsoluteDifferences(differences));
+        console.log("day1 pt1 " + sum(differences));
         // part 2
         const occurrences = countOccurrences(sorted[1]);
         const multiplied = sorted[0].map(item => item * (occurrences[item] || 0));
@@ -36,36 +39,63 @@ function day1() {
         console.error(err);
     }
 }
-function parseRowDataToNumbers(data) {
-    return data.split('\n').map(row =>
-        row.split(/\s+/).map(Number)
-    );
-}
-function transposeMatrix(matrix) {
-    // if (matrix.length === 0) return [];
-    return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex] || null));
-}
-function sortRow(row) {
-    return row.sort((a, b) => a - b);
-}
-function computeAbsoluteDifferences(matrix) {
-    if (matrix.length !== 2) {
-        throw new Error('Matrix must have exactly 2 rows');
-    }
-    return matrix[0].map((item, index) => Math.abs(item - matrix[1][index]));
-}
-function sumAbsoluteDifferences(differences) {
-    return differences.reduce((sum, value) => sum + value, 0);
-}
-function countOccurrences(sortedNumbers) {
-    return sortedNumbers.reduce((acc, num) => {
-        acc[num] = (acc[num] || 0) + 1;
-        return acc;
-    }, {});
-}
-
 
 function day2() {
+    try {
+        const data = read('d2.in');
+        const rows = parseRowDataToNumbers(data);
+        // part 1
+        console.log("day2 pt1 " + rows.reduce((count, row) => {
+            return count + (isStrictlyMonotonic(row) ? 1 : 0);
+        }, 0));
+        // part 2
+        console.log("day2 pt2 " + rows.reduce((count, row) => {
+            return count + (checkIfAnyStrictlyMonotonic(row) ? 1 : 0);
+        }, 0));
 
+    } catch (err) {
+        console.error(err);
+    }
 }
 
+function day3() {
+    try {
+        const data = read('d3.in');
+        console.log("day3 pt1: " + d3pt1(data));
+        console.log("day3 pt2: " + d3pt2(data));
+    } catch (err) {
+        console.error(err);
+    }
+}
+function d3pt1(data) {
+    const regex = /mul\((\d{1,3}),(\d{1,3})\)/g;
+    let match;
+    const results = [];
+
+    while ((match = regex.exec(data)) !== null) {
+        const x = parseInt(match[1], 10);
+        const y = parseInt(match[2], 10);
+        results.push(x * y);
+    }
+    return sum(results);
+}
+
+function d3pt2(data) {
+    const regex = /mul\((\d{1,3}),(\d{1,3})\)|do\(\)|don't\(\)/g;
+    let match;
+    const results = [];
+    let mulEnabled = true;
+
+    while ((match = regex.exec(data)) !== null) {
+        if (match[0] === 'do()') {
+            mulEnabled = true;
+        } else if (match[0] === "don't()") {
+            mulEnabled = false;
+        } else if (mulEnabled && match[0].startsWith('mul(')) {
+            const x = parseInt(match[1], 10);
+            const y = parseInt(match[2], 10);
+            results.push(x * y);
+        }
+    }
+    return sum(results);
+}
