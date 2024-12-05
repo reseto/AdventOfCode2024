@@ -1,7 +1,7 @@
 const { Command } = require('commander');
 const program = new Command();
 const { read, parseRowDataToNumbers, transposeMatrix, sortRow, computeAbsoluteDifferences, sum, countOccurrences } = require('./utilsD1');
-const { isStrictlyMonotonic, checkIfAnyStrictlyMonotonic, produceArraysWithoutCurrentItem } = require('./utilsD2');
+const { isStrictlyMonotonic, checkIfAnyStrictlyMonotonic } = require('./utilsD2');
 const { countWordOccurrences, findPattern } = require('./utilsD4');
 
 // Run the program with the following command:
@@ -23,7 +23,7 @@ if (options.day === '2') day2();
 if (options.day === '3') day3();
 if (options.day === '4') day4();
 if (options.day === '5') day5();
-// if (options.day === '6') day6();
+if (options.day === '6') day6();
 // if (options.day === '7') day7();
 
 function day1() {
@@ -129,18 +129,122 @@ function day4() {
 
 function day5() {
     try {
-        const data = read('d5_small.in');
-        console.log("day5 pt1: " + d5pt1(data));
-        console.log("day5 pt2: " + d5pt2(data));
+        const data = read('d5.in');
+        const { rules, updates } = parseData(data);
+        const sortedUpdates = updates.map(update => topoSort(update, rules));
+
+        console.log("day5 pt1: " + d5pt1(rules, updates, sortedUpdates));
+        console.log("day5 pt2: " + d5pt2(rules, updates, sortedUpdates));
     } catch (err) {
         console.error(err);
     }
 
-    function d5pt1(data) {
-        return "";
+    function parseData(data) {
+        const [rulesSection, updatesSection] = data.split('\n\n');
+
+        const rules = rulesSection.split('\n').map(line =>
+            line.split('|').map(Number)
+        );
+
+        const updates = updatesSection.split('\n').map(line =>
+            line.split(',').map(Number)
+        );
+
+        return { rules, updates };
     }
 
-    function d5pt2(data) {
-        return "";
+    function middleValue(arr) {
+        const middleIndex = Math.floor(arr.length / 2);
+        return arr[middleIndex];
+    }
+
+    function topoSort(array, rules) {
+        const graph = new Map();
+        const inDegree = new Map();
+
+        array.forEach(num => {
+            graph.set(num, []);
+            inDegree.set(num, 0);
+        });
+
+        rules.forEach(([pre, post]) => {
+            if (graph.has(pre) && graph.has(post)) {
+                graph.get(pre).push(post);
+                inDegree.set(post, inDegree.get(post) + 1);
+            }
+        });
+
+        const queue = [];
+        inDegree.forEach((degree, num) => {
+            if (degree === 0) queue.push(num);
+        });
+
+        const sorted = [];
+        while (queue.length > 0) {
+            const num = queue.shift();
+            sorted.push(num);
+            graph.get(num).forEach(neighbor => {
+                inDegree.set(neighbor, inDegree.get(neighbor) - 1);
+                if (inDegree.get(neighbor) === 0) queue.push(neighbor);
+            });
+        }
+
+        return sorted;
+    }
+
+    function d5pt1(rules, updates, sortedUpdates) {
+        const results = [];
+        for (let i = 0; i < sortedUpdates.length; i++) {
+            const su = sortedUpdates[i];
+            const up = updates[i];
+            let match = true;
+            for (let j = 0; j < sortedUpdates[i].length; j++) {
+                match = match && su[j] === up[j];
+            }
+            if (match) {
+                results.push(middleValue(up));
+            }
+        }
+        return sum(results)
+    }
+
+    function d5pt2(rules, updates, sortedUpdates) {
+        const results = [];
+        for (let i = 0; i < sortedUpdates.length; i++) {
+            const su = sortedUpdates[i];
+            const up = updates[i];
+            let match = true;
+            for (let j = 0; j < sortedUpdates[i].length; j++) {
+                match = match && su[j] === up[j];
+            }
+            if (!match) {
+                results.push(middleValue(su));
+            }
+        }
+        return sum(results)
+    }
+}
+
+function day6() {
+    try {
+        const data = read('d6.in');
+        console.log("day6 pt1: " + d6pt1(data));
+        console.log("day6 pt2: " + d6pt2(data));
+    } catch (err) {
+        console.error(err);
+    }
+
+    function d6pt1(data) {
+        return data.split('\n\n').map(group => {
+            const answers = group.split('\n').join('');
+            return new Set(answers).size;
+        });
+    }
+
+    function d6pt2(data) {
+        return data.split('\n\n').map(group => {
+            const answers = group.split('\n').join('');
+            return new Set(answers).size;
+        });
     }
 }
