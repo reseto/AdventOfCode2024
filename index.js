@@ -17,9 +17,9 @@ program
   .option('-d, --day <type>', 'specify day to run');
 
 program.parse(process.argv);
-start(program, process);
+start();
 
-function start(program, process) {
+function start() {
     try {
         const options = program.opts();
         if (options.debug) console.log(options);
@@ -174,4 +174,16 @@ function day7() {
     const data = read('d7.in');
     console.log("day7 pt1: " + sumOfTestValues(data, false));
     console.log("day7 pt2: " + sumOfTestValues(data, true));
+}
+
+function day8() {
+    const data = read('d8med.in');
+    console.log("day8 pt1: " + "TODO");
+    console.log("day8 pt2: " + "TODO");
+}
+
+function day9() {
+    const data = read('d9med.in');
+    console.log("day9 pt1: " + "TODO");
+    console.log("day9 pt2: " + "TODO");
 }
