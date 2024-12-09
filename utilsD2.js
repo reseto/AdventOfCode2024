@@ -1,3 +1,10 @@
+export {
+    isStrictlyMonotonic,
+    // isAlmostStrictlyMonotonic,
+    // isStrictlyMonotonicWithFaultTolerance,
+    produceArraysWithoutCurrentItem,
+    checkIfAnyStrictlyMonotonic
+}
 
 function isStrictlyMonotonic(numbers) {
     if (numbers.length < 2) return true;
@@ -112,10 +119,3 @@ function checkIfAnyStrictlyMonotonic(numbers) {
     return arraysWithoutCurrentItem.some(isStrictlyMonotonic);
 }
 
-export {
-    isStrictlyMonotonic,
-    // isAlmostStrictlyMonotonic,
-    // isStrictlyMonotonicWithFaultTolerance,
-    produceArraysWithoutCurrentItem,
-    checkIfAnyStrictlyMonotonic
-}

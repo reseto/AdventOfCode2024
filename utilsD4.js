@@ -1,3 +1,8 @@
+export {
+    countWordOccurrences,
+    checkWord,
+    findPattern
+}
 
 function countWordOccurrences(grid, word) {
     const directions = [
@@ -77,10 +82,4 @@ function matchesPattern(grid, pattern, startRow, startCol) {
         }
     }
     return true;
-}
-
-export {
-    countWordOccurrences,
-    checkWord,
-    findPattern
 }

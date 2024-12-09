@@ -3,6 +3,9 @@ const program = new Command();
 const { read, parseRowDataToNumbers, transposeMatrix, sortRow, computeAbsoluteDifferences, sum, countOccurrences } = require('./utilsD1');
 const { isStrictlyMonotonic, checkIfAnyStrictlyMonotonic } = require('./utilsD2');
 const { countWordOccurrences, findPattern } = require('./utilsD4');
+const { middleValue, topoSort, parseData } = require("./utilsD5");
+const { visit, markX, markO, visitLoops} = require('./utilsD6');
+const { sumOfTestValues } = require("./utilsD7");
 
 // Run the program with the following command:
 // node index.js -d 1
@@ -14,20 +17,27 @@ program
   .option('-d, --day <type>', 'specify day to run');
 
 program.parse(process.argv);
+start(program, process);
 
-const options = program.opts();
-if (options.debug) console.log(options);
-if (options.day) console.log(`Starting day ${options.day}!`);
-if (options.day === '1') day1();
-if (options.day === '2') day2();
-if (options.day === '3') day3();
-if (options.day === '4') day4();
-if (options.day === '5') day5();
-if (options.day === '6') day6();
-// if (options.day === '7') day7();
+function start(program, process) {
+    try {
+        const options = program.opts();
+        if (options.debug) console.log(options);
+        // if (options.day) console.log(`Starting day ${options.day}!`);
+        if (options.day === '1') day1();
+        if (options.day === '2') day2();
+        if (options.day === '3') day3();
+        if (options.day === '4') day4();
+        if (options.day === '5') day5();
+        if (options.day === '6') day6();
+        if (options.day === '7') day7();
+        if (options.day === '8') day8();
+    } catch (err) {
+        console.error(err);
+    }
+}
 
 function day1() {
-    try {
         const data = read('d1.in');
         const rowPairs = parseRowDataToNumbers(data);
         const transposed = transposeMatrix(rowPairs);
@@ -39,37 +49,23 @@ function day1() {
         const multiplied = sorted[0].map(item => item * (occurrences[item] || 0));
         const reduce = multiplied.reduce((acc, num) => acc + num, 0);
         console.log("day1 pt2 " + reduce);
-    } catch (err) {
-        console.error(err);
-    }
 }
 
 function day2() {
-    try {
         const data = read('d2.in');
         const rows = parseRowDataToNumbers(data);
-        // part 1
         console.log("day2 pt1 " + rows.reduce((count, row) => {
             return count + (isStrictlyMonotonic(row) ? 1 : 0);
         }, 0));
-        // part 2
         console.log("day2 pt2 " + rows.reduce((count, row) => {
             return count + (checkIfAnyStrictlyMonotonic(row) ? 1 : 0);
         }, 0));
-
-    } catch (err) {
-        console.error(err);
-    }
 }
 
 function day3() {
-    try {
-        const data = read('d3.in');
-        console.log("day3 pt1: " + d3pt1(data));
-        console.log("day3 pt2: " + d3pt2(data));
-    } catch (err) {
-        console.error(err);
-    }
+    const data = read('d3.in');
+    console.log("day3 pt1: " + d3pt1(data));
+    console.log("day3 pt2: " + d3pt2(data));
 
     function d3pt1(data) {
         const regex = /mul\((\d{1,3}),(\d{1,3})\)/g;
@@ -103,94 +99,23 @@ function day3() {
         }
         return sum(results);
     }
-
 }
 
 function day4() {
-    try {
-        const data = read('d4.in');
-        console.log("day4 pt1: " + d4pt1(data));
-        console.log("day4 pt2: " + d4pt2(data));
-    } catch (err) {
-        console.error(err);
-    }
-
-    function d4pt1(data) {
-        const grid = data.split('\n').map(line => line.split(''));
-        const word = 'XMAS';
-        return countWordOccurrences(grid, word);
-    }
-
-    function d4pt2(data) {
-        const grid = data.split('\n').map(line => line.split(''));
-        return findPattern(grid);
-    }
+    const data = read('d4.in');
+    const grid = data.split('\n')
+        .map(line => line.split(''));
+    console.log("day4 pt1: " + countWordOccurrences(grid, 'XMAS'));
+    console.log("day4 pt2: " + findPattern(grid));
 }
 
 function day5() {
-    try {
-        const data = read('d5.in');
-        const { rules, updates } = parseData(data);
-        const sortedUpdates = updates.map(update => topoSort(update, rules));
+    const data = read('d5.in');
+    const { rules, updates } = parseData(data);
+    const sortedUpdates = updates.map(update => topoSort(update, rules));
 
-        console.log("day5 pt1: " + d5pt1(rules, updates, sortedUpdates));
-        console.log("day5 pt2: " + d5pt2(rules, updates, sortedUpdates));
-    } catch (err) {
-        console.error(err);
-    }
-
-    function parseData(data) {
-        const [rulesSection, updatesSection] = data.split('\n\n');
-
-        const rules = rulesSection.split('\n').map(line =>
-            line.split('|').map(Number)
-        );
-
-        const updates = updatesSection.split('\n').map(line =>
-            line.split(',').map(Number)
-        );
-
-        return { rules, updates };
-    }
-
-    function middleValue(arr) {
-        const middleIndex = Math.floor(arr.length / 2);
-        return arr[middleIndex];
-    }
-
-    function topoSort(array, rules) {
-        const graph = new Map();
-        const inDegree = new Map();
-
-        array.forEach(num => {
-            graph.set(num, []);
-            inDegree.set(num, 0);
-        });
-
-        rules.forEach(([pre, post]) => {
-            if (graph.has(pre) && graph.has(post)) {
-                graph.get(pre).push(post);
-                inDegree.set(post, inDegree.get(post) + 1);
-            }
-        });
-
-        const queue = [];
-        inDegree.forEach((degree, num) => {
-            if (degree === 0) queue.push(num);
-        });
-
-        const sorted = [];
-        while (queue.length > 0) {
-            const num = queue.shift();
-            sorted.push(num);
-            graph.get(num).forEach(neighbor => {
-                inDegree.set(neighbor, inDegree.get(neighbor) - 1);
-                if (inDegree.get(neighbor) === 0) queue.push(neighbor);
-            });
-        }
-
-        return sorted;
-    }
+    console.log("day5 pt1: " + d5pt1(rules, updates, sortedUpdates));
+    console.log("day5 pt2: " + d5pt2(rules, updates, sortedUpdates));
 
     function d5pt1(rules, updates, sortedUpdates) {
         const results = [];
@@ -226,25 +151,27 @@ function day5() {
 }
 
 function day6() {
-    try {
         const data = read('d6.in');
-        console.log("day6 pt1: " + d6pt1(data));
-        console.log("day6 pt2: " + d6pt2(data));
-    } catch (err) {
-        console.error(err);
+        const grid = data.split('\n').map(line => line.split(''));
+        console.log("day6 pt1: " + d6pt1(grid));
+        console.log("day6 pt2: " + d6pt2(grid));
+
+    function d6pt1(grid) {
+        const visited = visit(grid);
+        // console.log(markX(grid, visited));
+        return visited.size;
     }
 
-    function d6pt1(data) {
-        return data.split('\n\n').map(group => {
-            const answers = group.split('\n').join('');
-            return new Set(answers).size;
-        });
+    function d6pt2(grid) {
+        // TODO INCOMPLETE
+        const loopPlace = visitLoops(grid);
+        console.log(markO(grid, loopPlace));
+        return loopPlace.size;
     }
+}
 
-    function d6pt2(data) {
-        return data.split('\n\n').map(group => {
-            const answers = group.split('\n').join('');
-            return new Set(answers).size;
-        });
-    }
+function day7() {
+    const data = read('d7.in');
+    console.log("day7 pt1: " + sumOfTestValues(data, false));
+    console.log("day7 pt2: " + sumOfTestValues(data, true));
 }

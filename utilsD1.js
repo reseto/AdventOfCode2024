@@ -1,7 +1,17 @@
 import fs from "fs";
 
+export {
+    read,
+    parseRowDataToNumbers,
+    transposeMatrix,
+    sortRow,
+    computeAbsoluteDifferences,
+    sum,
+    countOccurrences
+}
+
 function read(file) {
-    return fs.readFileSync(file, 'utf8');
+    return fs.readFileSync(file, 'utf8').trim();
 }
 
 function parseRowDataToNumbers(data) {
@@ -36,21 +46,4 @@ function countOccurrences(sortedNumbers) {
         return acc;
     }, {});
 }
-export {
-    read,
-    parseRowDataToNumbers,
-    transposeMatrix,
-    sortRow,
-    computeAbsoluteDifferences,
-    sum,
-    countOccurrences
-}
-// module.exports = {
-//     read,
-//     parseRowDataToNumbers,
-//     transposeMatrix,
-//     sortRow,
-//     computeAbsoluteDifferences,
-//     sumAbsoluteDifferences,
-//     countOccurrences
-// }
+
